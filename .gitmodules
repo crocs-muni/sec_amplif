@@ -1,3 +1,6 @@
 [submodule "Arduino/lib/jeelib"]
 	path = Arduino/lib/jeelib
 	url = git@github.com:jcw/jeelib.git
+[submodule "Arduino/lib/crypto/arduinolibs"]
+	path = Arduino/lib/crypto/arduinolibs
+	url = git@github.com:rweather/arduinolibs.git
