@@ -4,3 +4,6 @@
 [submodule "Arduino/lib/crypto/arduinolibs"]
 	path = Arduino/lib/crypto/arduinolibs
 	url = git@github.com:rweather/arduinolibs.git
+[submodule "Arduino/crypto/arduinolibs"]
+	path = Arduino/crypto/arduinolibs
+	url = https://github.com/rweather/arduinolibs.git
