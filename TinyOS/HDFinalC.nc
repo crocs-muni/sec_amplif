@@ -32,10 +32,12 @@ module HDFinalC {
   uses {
     // Boot interface provides event booted after the node boots
     interface Boot;	        
-    // Several milliseconds timers            
+    
+    // Milliseconds timers for control of execution   
     interface Timer<TMilli> as TimerBootDelay;		
     interface Timer<TMilli> as TimerSendNonceMsg;
     interface Timer<TMilli> as TimerTransmitMsg;
+    
     // Radio control and respective packets types
     interface SplitControl as RadioControl;
     interface AMSend as AckSend;
@@ -44,8 +46,10 @@ module HDFinalC {
     interface Receive as NonceReceive;
     interface AMSend as NonceConfSend;
     interface Receive as NonceConfReceive;
+    
     // Interface providing random numbers
     interface Random;
+    
     // Interface providing the AES256 encryption
     interface AES;
   }
@@ -74,7 +78,7 @@ implementation {
   /** @brief The number of neighbouring nodes. */
   uint8_t numNeigh = 0;
 	
-  /** @brief The table with information about all the neighbours. */
+  /** @brief The table containing information about all the neighbours. */
   neighMember_t neighTable[maxNeigh];
 	
   /** @brief Variable used for a random number generated throughout the application. */
@@ -92,14 +96,14 @@ implementation {
   /** @brief The number of remaining attempts for reliable packet delivery. */
   uint8_t rlPending = 0; 
 
-  /** @brief Variables for nonce message, nonce confirmation message, and for acknowledgement message */
+  /** @brief Variables for nonce message, nonce confirmation message, and for acknowledgement message. */
   message_t nonceMsg, nonceConfMsg, ackMsg;
 	
-  /** @brief Indicate whether the node currently transmitting a message or not */
+  /** @brief Indicate whether the node is currently transmitting a message or not */
   bool sending = FALSE;
 
   /** 
-   * @brief Function returning an index within the neighTable structure for the particular neighbour.
+   * @brief Function returning the index within the neighTable structure for the particular neighbour.
    *
    * @param id The ID of the neighbouring node. The returned index belongs to that node.
    **/
@@ -146,7 +150,6 @@ implementation {
     if (rlPending != 0) call TimerTransmitMsg.startOneShot(100);
   }
 
-
   /** 
    * @brief Reliable packet delivery - store packet that should be send.
    *
@@ -179,7 +182,7 @@ implementation {
    * The function is implemented as AES encryption of nonce by the respective link key.
    *
    * @param inBlock The data that should be encrypted (hashed) - nonce.
-   * @param keyValue The current link key for respective neighbour.
+   * @param keyValue The current link key for a respective neighbour.
    * @param hash The output of function is stored there.
    **/
   void hashData(uint8_t* inBlock, uint8_t* keyValue, uint8_t* hash) {
@@ -190,9 +193,9 @@ implementation {
   }
 
   /** 
-   * @brief The node has booted event.
+   * @brief The node booted event.
    *
-   * Instruction executed after the node has booted. Initialisation of structures, start 
+   * Instructions executed after the node has booted. Initialisation of structures, start 
    * of radio stack, and start the amplification with defined delay.
    **/
   event void Boot.booted() {		  
@@ -218,7 +221,7 @@ implementation {
   }
 
   /** 
-   * @brief Setup the amplification process and inicialize all the variables. 
+   * @brief Setup the amplification process and inicialize all the amplification variables. 
    *
    * The intermediate nodes for amplification process are determined during this phase. Total 
    * number of amplification messages is calculate and initial link keys are established.
@@ -241,7 +244,7 @@ implementation {
     uint8_t i, j, k, l;
     uint8_t interNode1, interNode2;
 
-    // Compute the relative distances based on hybrid designed protocol HD Final and the transmission range
+    // Compute the relative distances based on hybrid designed protocol HD Final parameters and the transmission range
     centralRelDist1 = 0.69 * nodeTransmissionRange;
     neighRelDist1 = 0.98 * nodeTransmissionRange;
     centralRelDist2 = 0.01 * nodeTransmissionRange;
@@ -369,7 +372,7 @@ implementation {
    *
    * The nonce message is generated. After passing to reliable transmission, the next 
    * timer (TimerSendNonceMsg) is used to plan sending of the next nonce message until all
-   * all the nonce messages are transmitted.
+   * the nonce messages are transmitted.
    **/	
   task void sendNonceMsg() {
     uint8_t i;
@@ -420,15 +423,15 @@ implementation {
    * @brief Timer for controll of generation and sending of nonce messages. 
    *
    * The timer first check whether there is some pending message for reliable transmission.
-   * In a positive case, the next check is planned after 10 milliseconds. In a negative
+   * In a positive case, the next check is planned again in 10 milliseconds. In a negative
    * case, the task generating and sending the nonce message is posted.
    **/	
   event void TimerSendNonceMsg.fired() {
     if (rlPending == 0) {
-      // There is nothing else to reliably send, plan the sendinding of next nonce message
+      // There is nothing else to reliably send, post the task sendinding the next nonce message
       post sendNonceMsg();
     } else {
-      // There is another message to send, plan the check aganin with 10 millisecond delay
+      // There is another message to send, plan the check again with 10 millisecond delay
       call TimerSendNonceMsg.startOneShot(10);
     }
   }
@@ -437,8 +440,9 @@ implementation {
    * @brief Acknowledgement message is received.
    *
    * The acknowledgement ensures the reliable packet delivery. After the acknowledgement is 
-   * received, the rlPending is set to 0 and packet is not re-sent again. If the acknowledgement 
-   * was received for nonce confirmation, the link key is updated with respective neighbour. 
+   * received, the rlPending is set to 0 and packet is not re-sent again. Moreover, if the 
+   * acknowledgement was received for nonce confirmation, the link key is updated with 
+   * respective neighbour. 
    **/
   event message_t * AckReceive.receive(message_t *msg, void *payload, uint8_t len) {
     pktAck_t* nmsg = payload;
@@ -463,7 +467,7 @@ implementation {
    * @brief Nonce message is received.
    *
    * The nonce message is either processed (in case of neighbouring node) or resent (in 
-   * case of intermediate node). Finally, the acknowledgement is sent to  the sender of
+   * case of intermediate node). Finally, the acknowledgement is sent to the sender of
    * the message. 
    **/
   event message_t * NonceReceive.receive(message_t *msg, void *payload, uint8_t len) {

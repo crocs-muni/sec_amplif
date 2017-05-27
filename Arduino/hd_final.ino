@@ -89,7 +89,7 @@ uint8_t saMsgCounter = 0;
 /** @brief Pointer to a particular neighbour. The next amplification message will be generated for this neighbour. */
 uint8_t saNextMsgPtr = 0;
 
-/** @brief Every amplification message is send during an interval with length amplifLength / saMsgToBeSent. */
+/** @brief Every amplification message is send during an interval with length amplifLength / saMsgToBeSent (in milliseconds). */
 double saMsgInterval = 0;
 
 /** @brief The node ID is loaded form EEPROM memory. */
@@ -101,7 +101,7 @@ uint8_t stack[RF12_MAXDATA];
 /** @brief The number of neighbouring nodes. */
 uint8_t numNeigh = 0;
 
-/** @brief The table with information about all the neighbours. */
+/** @brief The table containing information about all the neighbours. */
 neighMember neighTable[maxNeigh];
 
 /** @brief Variable used for a random number generated throughout the application. */
@@ -234,7 +234,7 @@ void setup() {
 
   double distance;
 
-  // Compute the relative distances based on hybrid designed protocol HD Final and the transmission range
+  // Compute the relative distances based on hybrid designed protocol HD Final parameters and the transmission range
   double centralRelDist1 = 0.69 * nodeTransmissionRange;
   double neighRelDist1 = 0.98 * nodeTransmissionRange;
   double centralRelDist2 = 0.01 * nodeTransmissionRange;
